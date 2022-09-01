@@ -4,7 +4,7 @@
 
 	<groupId>com.mycompany</groupId>
 	<artifactId>healthchecktest</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>mule-application</packaging>
 
 	<name>HealthCheckSystemTestApp</name>
@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>com.florencenext.connectors.healthcheck</groupId>
 			<artifactId>health-check-connector</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.1-SNAPSHOT</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
