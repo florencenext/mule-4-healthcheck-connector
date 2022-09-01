@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:healthcheck="http://www.mulesoft.org/schema/mule/healthcheck"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/healthcheck http://www.mulesoft.org/schema/mule/healthcheck/current/mule-healthcheck.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+
+	<flow name="papi-1-healthcheck-flow" doc:id="9aa203d1-66ff-4858-8eb9-14b07b57197d" >
+		<http:listener doc:name="/papi-1/healthcheck" doc:id="accc97f5-44e9-443d-a314-989e57118e29" config-ref="healthcheck-app-listener" path="/papi-1/healthcheck" />
+		<healthcheck:internal-services doc:name="papi-internal-dependencies" doc:id="0f9917ee-d573-49ef-9180-d507824f99d5" config-ref="papi1-healthcheck-connector-config" applyCustomMapping="true">
+			<healthcheck:custom-mapping ><![CDATA[%dw 2.0 
+output application/json
+---
+payload.data]]></healthcheck:custom-mapping>
+		</healthcheck:internal-services>
+		<healthcheck:create-healthcheck-object doc:name="papi-1" doc:id="e67a3ca3-5fe2-4ec0-86ae-831da86bf0ca" config-ref="papi1-healthcheck-connector-config" services="#[payload]"/>
+		<ee:transform doc:name="prepare Response" doc:id="f0161801-55e9-4a39-b52e-8265748e493b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from modules::HealthcheckConnectorModule
+---
+{
+ data: formattedHealthcheck(payload,{compact:true})
+}
+//formattedhealthcheck(payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

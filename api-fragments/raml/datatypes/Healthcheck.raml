@@ -1,0 +1,48 @@
+#%RAML 1.0 Library
+
+types:
+  HealthCheck:
+    description: A data type to for the healthcheck object
+    properties:
+      name:
+        type: string
+        description: Name of service
+        example: process-api
+        required: true
+      status:
+        enum:
+          - HEALTHY
+          - UNHEALTHY
+        description: Describe the status of the service
+        example: UNHEALTHY
+      type:
+        enum:
+          - HTTP
+          - SOAP
+          - DB
+          - JMS
+          - AMQP
+          - XAPI
+          - PAPI
+          - SAPI
+          - CUSTOM
+        description: Describe the type of service
+        example: XAPI
+      time:
+        type: integer
+        description: Indicate the time spent to perform the healthcheck in millisecond
+        example: 1000
+      error:
+        type: string
+        required: false
+        description: Description of the error of the current service
+        example: Could not connect to DB
+      dependencies:
+        description: Dependencies of the service
+        type: array
+        items: HealthCheck
+        required: false
+      dependenciesErrors:
+        description: Summary of errors occured in the current service and its dependencies
+        type: array
+        items: !include HealthcheckDependencyError.raml

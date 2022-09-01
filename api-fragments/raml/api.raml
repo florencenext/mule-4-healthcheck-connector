@@ -1,0 +1,13 @@
+#%RAML 1.0
+title: Baeldung Foo REST Services API
+version: v1
+protocols: [ HTTPS ]
+
+uses:
+  lib: healthcheck-fragment-raml.raml
+
+/healthcheck:
+  get:
+    description: |
+      Get the foo that is related to the bar having barId = {barId}
+    is: lib.hasHealthcheckResponseMessage

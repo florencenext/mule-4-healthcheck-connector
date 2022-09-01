@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:healthcheck="http://www.mulesoft.org/schema/mule/healthcheck"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/healthcheck http://www.mulesoft.org/schema/mule/healthcheck/current/mule-healthcheck.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+
+	<flow name="sapi-1-healthcheck-flow" doc:id="a6bec4c7-6a2e-48f2-871b-26975efe09f6" >
+		<http:listener doc:name="/sapi-1/healthcheck" doc:id="1e90429b-1781-40d4-9392-7e4a2bb571e6" config-ref="healthcheck-app-listener" path="/sapi-1/healthcheck"/>
+		<healthcheck:http doc:name="ext-system-1" doc:id="e4d5bfc2-5695-40ec-bc3d-fc9c6eb1649f" path="/external-system-1" serviceName="ext-system-1" configRef="external-system-1-http-request"/>
+		<healthcheck:create-healthcheck-object doc:name="sapi-1" doc:id="51986839-3aa8-4e60-93a7-e2af8fe10ff3" config-ref="sapi1-healthcheck-connector-config" services="#[[payload]]" targetValue="#[output application/json --- payload]"/>
+		<ee:transform doc:name="prepare Response" doc:id="abb15ecb-287b-427c-b1f6-dd7f4c65d6be" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from modules::HealthcheckConnectorModule
+---
+{
+	data: formattedHealthcheck(payload)
+	
+}
+//formattedhealthcheck(payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sapi-1-business-flow" doc:id="cb1c2c96-d380-4389-9b19-27adc10c00cf" >
+		<http:listener doc:name="/sapi-1/impl" doc:id="c95c79ac-3e63-42bb-b671-256a2b0c5d02" config-ref="healthcheck-app-listener" path="/sapi-1/impl" />
+		<http:request method="GET" doc:name="ext-system1- /external-system-1" doc:id="cd09aded-0731-43b5-849d-944188eb1ce9" config-ref="external-system-1-http-request" path="/external-system-1"/>
+		<ee:transform doc:name="prepare Response" doc:id="49b0c4a1-e761-4769-982d-6efe773cac25" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "sapi implementation-flow",
+	data: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

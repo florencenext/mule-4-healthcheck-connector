@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:healthcheck="http://www.mulesoft.org/schema/mule/healthcheck"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/healthcheck http://www.mulesoft.org/schema/mule/healthcheck/current/mule-healthcheck.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+	<flow name="xapi-1-healthcheck-flow" doc:id="a586b9f6-723f-47df-816d-eac0125f6030" >
+		<http:listener doc:name="/xapi-1/healthcheck" doc:id="c8fc79eb-de94-426d-be28-d424e29fcc07" config-ref="healthcheck-app-listener" path="/xapi-1/healthcheck" />
+		<healthcheck:internal-services doc:name="Internal services" doc:id="decb051d-d5ff-4eac-9f33-9cec0165eebb" config-ref="xapi1-healthcheck-connector-config" applyCustomMapping="true">
+			<healthcheck:custom-mapping ><![CDATA[%dw 2.0 
+output application/json 
+---
+payload.data]]></healthcheck:custom-mapping>
+		</healthcheck:internal-services>
+		<healthcheck:create-healthcheck-object doc:name="xapi-1" doc:id="cb6d00d1-9178-45e0-b1dd-f8c23a56e426" config-ref="xapi1-healthcheck-connector-config" services="#[payload]" />
+		<ee:transform doc:name="prepare Response" doc:id="f5893c31-e170-40c3-bf59-ce47768f62c9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from modules::HealthcheckConnectorModule
+---
+{
+	data:formattedHealthcheck(payload)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

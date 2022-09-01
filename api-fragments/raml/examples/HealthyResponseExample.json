@@ -1,0 +1,19 @@
+{
+  "name": "papi-1",
+  "type": "PAPI",
+  "status": "HEALTHY",
+  "time": 223,
+  "error": "",
+  "dependencies": [
+            {
+              "name": "sapi-1",
+              "type": "SAPI",
+              "status": "HEALTHY",
+              "time": 221,
+              "error": null,
+              "dependencies": [],
+              "dependenciesErrors": []
+            }
+  ],
+  "dependenciesErrors": []
+}

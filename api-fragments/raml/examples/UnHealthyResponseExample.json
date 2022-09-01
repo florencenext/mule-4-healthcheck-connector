@@ -1,0 +1,19 @@
+{
+  "name": "sapi-1",
+  "type": "SAPI",
+  "status": "UNHEALTHY",
+  "time": null,
+  "error": "null",
+  "dependencies": [
+        {
+            "name": "ext-system-2",
+            "type": "HTTP",
+            "status": "UNHEALTHY",
+            "time": 31,
+            "error": "HTTP:BAD_REQUEST: HTTP GET on resource 'http://external/api/' failed: bad request (400).",
+            "dependencies": [],
+            "dependenciesErrors": []
+        }
+  ],
+  "dependenciesErrors": []
+}

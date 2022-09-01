@@ -1,0 +1,9 @@
+{
+  "name":"sapi-1",
+  "type":"SAPI",
+  "status":"HEALTHY",
+  "time":null,
+  "error": 'null',
+  "dependencies":[],
+  "errors":[]
+}

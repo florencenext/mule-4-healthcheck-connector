@@ -1,0 +1,14 @@
+#%RAML 1.0 DataType
+
+type:
+  description: A data type for the healthcheck error object
+  properties:
+    name:
+      type: string
+      description: Name of service that thrown the error
+      example: process-api
+      required: true
+    error:
+      type:
+      description: Summary description of the error
+      example: "BAD_REQUEST HTTP GET on resource 'http://external/api/' failed: bad request (400)"

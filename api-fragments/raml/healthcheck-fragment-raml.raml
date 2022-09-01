@@ -1,0 +1,14 @@
+#%RAML 1.0 Library
+
+uses:
+  healthcheckEntity: datatypes/Healthcheck.raml
+
+
+traits: 
+  hasHealthcheckResponseMessage:
+    responses: 
+      200:
+        body:
+          type: healthcheckEntity.HealthCheck
+          application/json:
+            example: !include examples/HealthyResponseExample.json

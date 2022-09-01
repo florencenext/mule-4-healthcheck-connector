@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:healthcheck="http://www.mulesoft.org/schema/mule/healthcheck" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/healthcheck http://www.mulesoft.org/schema/mule/healthcheck/current/mule-healthcheck.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+
+	
+	<flow name="sapi-3-healthcheck-flow" doc:id="a6bec4c7-6a2e-48f2-871b-26975efe09f6" >
+		<http:listener doc:name="/sapi-3/healthcheck" doc:id="1e90429b-1781-40d4-9392-7e4a2bb571e6" config-ref="healthcheck-app-listener" path="/sapi-3/healthcheck"/>
+		<healthcheck:amqp doc:name="Amqp" doc:id="927ddd06-0019-4290-9581-d31ca319cdbb" serviceName="amq" configRef="AMQP_Config" exchangeDestination="test" queueDestination="test"/>
+		<healthcheck:create-healthcheck-object doc:name="Healthcheck" doc:id="51986839-3aa8-4e60-93a7-e2af8fe10ff3" config-ref="sapi3-healthcheck-connector-config" services="#[[payload]]" targetValue="#[output application/json --- payload]"/>
+		<ee:transform doc:name="prepare Response" doc:id="abb15ecb-287b-427c-b1f6-dd7f4c65d6be" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from modules::HealthcheckConnectorModule
+---
+{
+	data: formattedHealthcheck(payload)
+	
+}
+//formattedhealthcheck(payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sapi-3-test-amqp-impl" doc:id="495b24e5-e63a-4f29-a024-4bf1814ac187" >
+		<http:listener doc:name="sapi-3/amqp-impl" doc:id="54fcbbe6-5f08-4608-8cd8-b9932184b4fe" config-ref="healthcheck-app-listener" path="/sapi-3/amqp-impl" />
+		<logger level="INFO" doc:name="START" doc:id="812316f7-4917-4487-8186-71d849a9b5b1" message="START - FLOW TEST AMQP IMPL" />
+		<amqp:publish doc:name="Publish" doc:id="8854c55d-bbf7-41c0-9ec3-173b5bea66f2" config-ref="AMQP_Config" exchangeName="amq.direct">
+			<amqp:message >
+				<amqp:body ><![CDATA[#["this is test"]]]></amqp:body>
+			</amqp:message>
+		</amqp:publish>
+		<logger level="INFO" doc:name="AMQP-publish" doc:id="17cc32f5-21b7-4065-8352-9488d3673302" message="AMQP Publish completed" />
+		<logger level="INFO" doc:name="END" doc:id="fe660151-a93b-411b-9211-fb40ab68d170" message="END - FLOW TEST AMQP healthcheck" />
+	</flow>
+</mule>

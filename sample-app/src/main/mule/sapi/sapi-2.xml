@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:healthcheck="http://www.mulesoft.org/schema/mule/healthcheck" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/healthcheck http://www.mulesoft.org/schema/mule/healthcheck/current/mule-healthcheck.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+
+	<flow name="sapi-2-healthcheck-flow" doc:id="5e57879f-acc9-42c5-a2e6-c3d8e00bc0e2" >
+		<http:listener doc:name="/sapi-2/healthcheck" doc:id="991b2394-2ba4-4803-8ad7-2568d4f64200" config-ref="healthcheck-app-listener" path="/sapi-2/healthcheck"/>
+		<scatter-gather doc:name="healthcheck-dependencies" doc:id="bd4540a1-7400-4fc7-b3a1-6bb2a330ebc0">
+			<route>
+				<healthcheck:hc-scope serviceType="SOAP" doc:name="healthcheck-soap-service" doc:id="badec8e0-393f-40d8-992b-751a28d7ae09" serviceName="soap-service">
+			<wsc:consume doc:name="Consume" doc:id="44f4dc71-0846-4d7a-8297-d5400b8c2bd5" config-ref="Web_Service_Consumer_Config" operation="NumberToDollars">
+				<wsc:message>
+					<wsc:body><![CDATA[	<NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>decimal</dNum>
+    </NumberToDollars>]]></wsc:body>
+				</wsc:message>
+			</wsc:consume>
+		</healthcheck:hc-scope>
+			</route>
+			<route>
+				<healthcheck:http doc:name="ext-system-2" doc:id="f0baaf72-f434-44c3-876a-229fa1c11be5" serviceName="ext-system-2" configRef="external-system-2-http-request" path="/external-system-2" />
+			</route>
+		</scatter-gather>
+		<healthcheck:create-healthcheck-object doc:name="sapi-2" doc:id="46eb25f9-c4a1-483f-9753-b9f2f8cc7464" config-ref="sapi2-healthcheck-connector-config" services="#[payload pluck $.payload]"/>
+		<ee:transform doc:name="prepare Response" doc:id="a171076a-a385-4fd8-806a-0371693c7397" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from modules::HealthcheckConnectorModule
+---
+//formattedhealthcheck(payload,{compact:true})
+{
+	data: formattedHealthcheck(payload,{compact:true})
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sapi-2-business-flow" doc:id="4e8cb6af-014f-43ff-8e82-15c9253ea654" >
+		<http:listener doc:name="/sapi-2/impl" doc:id="2493a463-39bc-4886-827e-9dfd91466df9" config-ref="healthcheck-app-listener" path="/sapi-2/impl" >
+			<http:response statusCode="#[vars.httpStatus default 200]" />
+			<http:error-response statusCode="#[vars.httpStatus default 400]" />
+		</http:listener>
+		<http:request method="GET" doc:name="ext-system2- /external-system-2" doc:id="c342763a-9c91-4d3a-9356-f86ccb073c33" config-ref="external-system-2-http-request" path="/external-system-2" />
+		<ee:transform doc:name="prepare Response" doc:id="e13e08d2-eed1-440c-bb19-795ddce4db94" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "sapi implementation-flow",
+	data: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="978a2498-e183-41b3-b901-6cf1952ddb1e" >
+				<ee:transform doc:name="prepare data error" doc:id="bf21a92c-6f8e-4383-ac0a-a2b15a6586dd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "Error calling system",
+	"error": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[error.errorMessage.attributes.statusCode default 500]" doc:name="httpStatus to 400" doc:id="40e0e7aa-e97f-4a64-bd3a-7b36ccb51fbd" variableName="httpStatus" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+		<flow name="sapi-2-error-flow" doc:id="cb481c5e-2b58-4932-aeb6-9a9575d74835" >
+		<http:listener doc:name="/sapi-2/bad-request" doc:id="10dde902-9485-47a7-bd91-21b0809b349c" config-ref="healthcheck-app-listener" path="/sapi-2/bad-request" >
+			<http:response statusCode="#[vars.httpStatus default 200]" />
+			<http:error-response statusCode="#[vars.httpStatus default 400]" />
+		</http:listener>
+		<ee:transform doc:name="prepare data error" doc:id="8af2ea12-19f9-4478-842c-de5ec7428888">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "Error calling system",
+	"error": "provona"
+	
+	}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<set-variable value="#[400 default 500]" doc:name="httpStatus to 400" doc:id="3389b8fa-d7a9-4e95-8837-18109cebaba6" variableName="httpStatus" />
+	</flow>
+</mule>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:healthcheck="http://www.mulesoft.org/schema/mule/healthcheck"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/healthcheck http://www.mulesoft.org/schema/mule/healthcheck/current/mule-healthcheck.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="external-system-success" doc:id="94b14e2b-acec-43f6-b400-676e07bfad20" >
+		<http:listener doc:name="/external-system-1" doc:id="6efa4b38-5112-4b32-8aa8-b16c1d611bb6" path="/external-system-1" config-ref="external-http"/>
+		<ee:transform doc:name="prepare Response" doc:id="1187ae5a-0964-4950-bbe8-c8f73f0bb881" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "I'm external-system-1"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="external-system-failure" doc:id="7908aafa-726b-470d-bce6-5383e87b4c6a" >
+		<http:listener doc:name="/external-system-2" doc:id="f562d3e0-1da3-4836-ae0c-33eb34bd827e" config-ref="external-http" path="/external-system-2" >
+			<http:response statusCode="#[vars.httpStatus default 200]" />
+			<http:error-response statusCode="#[vars.httpStatus default 500]" />
+		</http:listener>
+		<ee:transform doc:name="prepare Response" doc:id="68bcdc44-d8dd-4777-9c75-8cb49fcf1b20" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "I'm external-system-2"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[400]" doc:name="httpStatus to 400" doc:id="f7463b0b-14ee-4b14-a364-8c9b6b35a4e0" variableName="httpStatus"/>
+	</flow>
+</mule>

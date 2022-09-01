@@ -1,0 +1,41 @@
+version: '3'
+services:
+  healthcheck-broker:
+   image: vromero/activemq-artemis
+   container_name: mule_healthcheck_broker
+   environment:   
+      TZ: Europe/Rome
+      ARTEMIS_USERNAME: admin
+      ARTEMIS_PASSWORD: admin
+   ports:
+      - 61616:61616
+      - 8161:8161
+   volumes:
+      - healthcheck_broker_volume:/var/lib/artemis-instance
+  #http://localhost:8161/console/auth/login to
+  healthcheck-db:
+    image: mysql:8.0.19
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: healthcheck
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - 3306:3306
+      
+  healthcheck-amqp:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+        - healthcheck_amqp_data_volume:/var/lib/rabbitmq/
+        - healthcheck_amqp_log_volume:/var/log/rabbitmq
+
+volumes:
+  healthcheck_broker_volume:
+  healthcheck_amqp_data_volume:
+  healthcheck_amqp_log_volume:

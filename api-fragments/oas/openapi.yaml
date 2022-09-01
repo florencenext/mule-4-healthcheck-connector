@@ -1,0 +1,167 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: healthcheck-fragment
+paths: 
+  /healthcheck:
+    get:
+      summary: Health Check
+      description: >-
+        The healthcheck endpoint provides detailed information about the health
+        of a service and it's dependencies.
+      responses:
+        '200':
+          $ref: "#/components/responses/HealthCheckResponse"
+
+
+components:
+  schemas:
+    Healthcheck:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of service
+          example: process-api
+        status:
+          enum:
+            - HEALTHY
+            - UNHEALTHY
+          description: Describe the status of the service
+          example: UNHEALTHY
+        type:
+          enum:
+            - HTTP
+            - SOAP
+            - DB
+            - JMS
+            - AMQP
+            - XAPI
+            - PAPI
+            - SAPI
+            - CUSTOM
+          description: Describe the type of service
+          example: XAPI
+        time:
+          type: integer
+          nullable: true
+          description: Indicate the time spent to perform the healthcheck in millisecond
+          example: 1000
+        error:
+          type: string
+          nullable: true
+          description: Description of the error of the current service
+          example: Could not connect to DB
+        dependencies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Healthcheck"
+          description: Dependencies of the service
+        dependenciesErrors:
+          type: array
+          items: 
+            $ref: "#/components/schemas/HealthcheckError"
+          description: Summary of errors occured in the current service and its dependencies
+      example: |
+        {
+            "name": "papi-1",
+            "type": "PAPI",
+            "status": "HEALTHY",
+            "time": 0,
+            "error": "",
+            "dependencies": [
+              {
+                "name": "sapi-1",
+                "type": "SAPI",
+                "status": "HEALTHY",
+                "time": null,
+                "error": "null",
+                "dependencies": [],
+                "dependenciesErrors": []
+              }
+            ],
+            "dependenciesErrors": []
+        }
+
+    HealthcheckError:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of service
+        dependenciesErrors:
+          type: array
+          items: 
+            type: string
+          description: Describe the error of the service
+
+  examples:
+    HealthyResponseExample: 
+      summary: Example of Healthcheck of a healthy process-api
+      value: |
+        {
+            "name": "papi-1",
+            "type": "PAPI",
+            "status": "HEALTHY",
+            "time": 223,
+            "error": "",
+            "dependencies": [
+                      {
+                        "name": "sapi-1",
+                        "type": "SAPI",
+                        "status": "HEALTHY",
+                        "time": 221,
+                        "error": null,
+                        "dependencies": [],
+                        "dependenciesErrors": []
+                      }
+            ],
+            "dependenciesErrors": []
+        }
+    UnHealthyResponseExample: 
+      summary: Example of Healthcheck of a unhealthy system-api
+      value: |
+        {
+            "name": "sapi-1",
+            "type": "SAPI",
+            "status": "UNHEALTHY",
+            "time": null,
+            "error": "null",
+            "dependencies": [
+                  {
+                      "name": "ext-system-2",
+                      "type": "HTTP",
+                      "status": "UNHEALTHY",
+                      "time": 31,
+                      "error": "HTTP:BAD_REQUEST: HTTP GET on resource 'http://external/api/' failed: bad request (400).",
+                      "dependencies": [],
+                      "dependenciesErrors": []
+                  }
+            ],
+            "dependenciesErrors": []
+        }
+    SystemApiHealthcheckExample: 
+      summary: Example of Healthcheck of a  system-api
+      value: |
+        {
+            "name": "sapi-1",
+            "type": "SAPI",
+            "status": "HEALTHY",
+            "time": 2653,
+            "error": null,
+            "dependencies": [],
+            "dependenciesErrors": []
+        }
+        
+  responses:
+    HealthCheckResponse:
+      description: Healthcheck report
+      content: 
+        application/json:
+          schema: 
+            $ref: "#/components/schemas/Healthcheck"
+          examples:
+            healthy:
+              $ref: "#/components/examples/HealthyResponseExample"
+            unhealthy:
+              $ref: "#/components/examples/UnHealthyResponseExample"

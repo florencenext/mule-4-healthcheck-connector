@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:healthcheck="http://www.mulesoft.org/schema/mule/healthcheck"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/healthcheck http://www.mulesoft.org/schema/mule/healthcheck/current/mule-healthcheck.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	
+	<healthcheck:health-check-connector-config name="sapi1-healthcheck-connector-config" doc:name="Health Check Connector Health check connector config" doc:id="eb0f9f39-9406-480d-814a-fc917ec6da7e" applicationName="sapi-1" tracking:enable-default-events="false">
+	</healthcheck:health-check-connector-config>
+	<healthcheck:health-check-connector-config name="sapi2-healthcheck-connector-config" doc:name="Health Check Connector Health check connector config" doc:id="28e16bdb-b8a8-4eed-950d-712922faf2cb" applicationName="sapi-2">
+	</healthcheck:health-check-connector-config>
+	<healthcheck:health-check-connector-config name="sapi3-healthcheck-connector-config" doc:name="Health Check Connector Health check connector config" doc:id="04d62e5a-8a4a-4ec5-935b-62ab63f072ff" applicationName="sapi-3" tracking:enable-default-events="false">
+	</healthcheck:health-check-connector-config>
+	<healthcheck:health-check-connector-config name="papi1-healthcheck-connector-config" doc:name="Health Check Connector Health check connector config" doc:id="55966c53-9fe3-4fd9-9272-56c539a31f6c" applicationName="papi-1" applicationType="PAPI" healthcheckPath="/healthcheck">
+		<healthcheck:internal-services-configs >
+			<healthcheck:internal-service-config serviceName="sapi-1" httpConfigModule="HTTP_Request_configuration-papi-1-to-sapi-1" />
+			<healthcheck:internal-service-config serviceName="sapi-2" httpConfigModule="HTTP_Request_configuration-papi-1-to-sapi-2" />
+		</healthcheck:internal-services-configs>
+	</healthcheck:health-check-connector-config>	
+	<healthcheck:health-check-connector-config name="papi2-healthcheck-connector-config" doc:name="Health Check Connector Health check connector config" doc:id="b5f005f3-2c12-4f5d-8f4e-bcb9229f08db" applicationName="papi-2" applicationType="PAPI">
+	</healthcheck:health-check-connector-config>
+	<healthcheck:health-check-connector-config name="xapi1-healthcheck-connector-config" doc:name="Health Check Connector Health check connector config" doc:id="b3bcd745-5382-4a8c-b095-bd0ec3132a6c" applicationName="xapi-1" applicationType="XAPI" healthcheckPath="/healthcheck">
+		<healthcheck:internal-services-configs >
+			<healthcheck:internal-service-config serviceName="papi-1" httpConfigModule="HTTP_Request_configuration-xapi-to-papi-1" />
+			<healthcheck:internal-service-config serviceName="papi-2" httpConfigModule="HTTP_Request_configuration-xapi-to-papi-2" />
+		</healthcheck:internal-services-configs>
+	</healthcheck:health-check-connector-config>
+	
+	<http:request-config name="external-system-1-http-request" doc:name="HTTP Request configuration" doc:id="48a177a0-35d0-41d9-84a5-a6297f76d270" basePath="${external.http.basePath}">
+		<http:request-connection host="${external.http.host}" port="${external.http.port}" />
+	</http:request-config>
+		<http:request-config name="external-system-2-http-request" doc:name="HTTP Request configuration" doc:id="a9fb18b2-8f7c-4d38-b2f9-3476ae9806a8" basePath="${external.http.basePath}">
+		<http:request-connection host="${external.http.host}" port="${external.http.port}" />
+	</http:request-config>	
+	<http:request-config name="HTTP_Request_configuration-papi-1-to-sapi-1" doc:name="HTTP Request configuration" doc:id="7ef98f79-53c4-4292-a83a-570208ee2145" basePath="/api/sapi-1" >
+		<http:request-connection host="0.0.0.0" port="8094" />
+	</http:request-config>	
+	<http:request-config name="HTTP_Request_configuration-papi-1-to-sapi-2" doc:name="HTTP Request configuration" doc:id="a5d3c54a-3255-4930-96f6-69164bf254ba" basePath="/api/sapi-2" >
+		<http:request-connection host="0.0.0.0" port="8094" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration-xapi-to-papi-1" doc:name="HTTP Request configuration" doc:id="b468e0b9-34d6-4a07-8883-f38f89202e06" basePath="/api/papi-1" >
+		<http:request-connection host="0.0.0.0" port="8094" />
+	</http:request-config>	
+	<http:request-config name="HTTP_Request_configuration-xapi-to-papi-2" doc:name="HTTP Request configuration" doc:id="c5901f4a-155e-444a-a18a-bc790b4af491" basePath="/api/papi-2" >
+		<http:request-connection host="0.0.0.0" port="8094" />
+	</http:request-config>
+	<http:request-config name="HTTP_Config" doc:name="HTTP Request configuration" doc:id="ddbb78a4-ae39-49f8-a900-0614aa3e0c8c" basePath="/api">
+        <http:request-connection host="localhost" port="8091"/>
+    </http:request-config>
+    
+    <http:listener-config name="healthcheck-app-listener" doc:name="HTTP Listener config" doc:id="560c5186-8e62-4cdc-8151-ef797e3a75c5" basePath="${http.basePath}">
+		<http:listener-connection host="${http.private.host}" port="${http.private.port}" />
+	</http:listener-config>	
+	<http:listener-config name="external-http" doc:name="HTTP Listener config" doc:id="0fc53f7a-b67b-458d-bf44-ac80d7c1e228" basePath="${external.http.basePath}">
+		<http:listener-connection host="${external.http.host}" port="${external.http.port}" />
+	</http:listener-config>
+
+	
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="db1de645-5a2c-4eae-bc88-47b2d3c63b23" >
+		<wsc:connection wsdlLocation="https://www.dataaccess.com/webservicesserver/NumberConversion.wso?WSDL" service="NumberConversion" port="NumberConversionSoap12"/>
+	</wsc:config>	
+	
+	<amqp:config name="AMQP_Config" doc:name="AMQP Config" doc:id="adbf7df8-7c72-4bdb-80e1-79797f8a5876" >
+		<amqp:connection host="localhost" username="guest" password="guest" />
+	</amqp:config>
+	
+	<jms:config name="JMS_Config" encoding="UTF-8" contentType="application/json">
+        <jms:generic-connection specification="JMS_2_0" password="admin" username="admin">
+            <reconnection>
+				<reconnect />
+            </reconnection>
+            <jms:caching-strategy >
+				<jms:default-caching cacheProducers="false" cacheConsumers="false" />
+			</jms:caching-strategy>
+			<jms:connection-factory>
+                <jms:jndi-connection-factory connectionFactoryJndiName="ConnectionFactory" lookupDestination="TRY_ALWAYS">
+                    <jms:name-resolver-builder jndiInitialContextFactory="org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory" jndiProviderUrl="tcp://localhost:61616?confirmationWindowSize=10240">
+                        <jms:provider-properties />
+                    </jms:name-resolver-builder>
+                </jms:jndi-connection-factory>
+            </jms:connection-factory>
+        </jms:generic-connection>
+        <expiration-policy maxIdleTime="30" timeUnit="SECONDS"/>
+    </jms:config>
+    
+   <db:config name="Database_Config" doc:name="Database Config" doc:id="3682cbf6-da31-49dd-82db-7f16ed231b7c">
+        <db:my-sql-connection host="localhost" port="3306" user="user" password="password" database="healthcheck" >
+			<reconnection >
+				<reconnect />
+			</reconnection>
+		</db:my-sql-connection>
+    </db:config>
+    
+	<global-property doc:name="Global Property" doc:id="18e62c66-114b-4dc0-913d-1549b7c62aed" name="mule.env" value="local" />
+
+	<configuration-properties doc:name="Configuration properties" doc:id="1a68c58a-9db1-4d4f-803b-fa5f3350227b" file="properties/${mule.env}-properties.yaml" />
+</mule>
