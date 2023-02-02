@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.florencenext.connectors.healthcheck</groupId>
+	<groupId>6c4a0606-5c92-43d6-8de5-6c0cc202f06c</groupId>
 	<artifactId>health-check-connector</artifactId>
 	<version>1.0.1-SNAPSHOT</version>
 	<packaging>mule-extension</packaging>
