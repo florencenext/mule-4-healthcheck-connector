@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>6c4a0606-5c92-43d6-8de5-6c0cc202f06c</groupId>
+	<groupId>bdda7453-25b1-4ab5-be35-f32d9b8ce1cb</groupId>
 	<artifactId>health-check-connector</artifactId>
 	<version>1.0.1</version>
 	<packaging>mule-extension</packaging>
@@ -27,14 +27,6 @@
             <version>3.0.0</version>
         </plugin>
         
-<!--         <plugin> -->
-<!--             <groupId>org.mule.tools.maven</groupId> -->
-<!--             <artifactId>mule-maven-plugin</artifactId> -->
-<!--             <version>${mule.maven.plugin.version}</version> -->
-<!--             <extensions>true</extensions> -->
-<!--             <configuration> -->
-<!--             </configuration> -->
-<!--         </plugin> -->
         
         	<plugin>
 				<groupId>org.mule.runtime.plugins</groupId>
@@ -67,7 +59,17 @@
     </plugins>
 </build>
 
-
+	<pluginRepositories>
+		<pluginRepository>
+			<id>mulesoft-releases</id>
+			<name>mulesoft release repository</name>
+			<layout>default</layout>
+			<url>https://repository.mulesoft.org/releases/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 	
 	<dependencies>
 		<dependency>
@@ -124,16 +126,11 @@
 
 
 	<distributionManagement>
-        <repository>
-            <id>anypoint-exchange-v3-florencenext</id>
-            <name>Corporate Repository</name>
-            <url>https://maven.anypoint.mulesoft.com/api/v3/organizations/6c4a0606-5c92-43d6-8de5-6c0cc202f06c/maven</url>
-            <layout>default</layout>
-        </repository>
-    </distributionManagement>
-	  
-
-	  
-	  
-	  	  	  
+  		<repository>
+					<id>anypoint-exchange-v3</id>
+					<name>Anypoint Exchange</name>
+					<url>https://maven.eu1.anypoint.mulesoft.com/api/v3/organizations/bdda7453-25b1-4ab5-be35-f32d9b8ce1cb/maven</url>
+					<layout>default</layout>
+				</repository>      
+    </distributionManagement>  	  	  
 </project>
