@@ -2,7 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>bdda7453-25b1-4ab5-be35-f32d9b8ce1cb</groupId>
+	<!-- bdda7453-25b1-4ab5-be35-f32d9b8ce1cb -->
+	<groupId>${globals.businessGroupId}</groupId>
 	<artifactId>health-check-connector</artifactId>
 	<version>1.0.1</version>
 	<packaging>mule-extension</packaging>
@@ -20,15 +21,13 @@
 	</parent> 
 	
 	<build>
-      <plugins>
-         <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-clean-plugin</artifactId>
-            <version>3.0.0</version>
-        </plugin>
-        
-        
-        	<plugin>
+		<plugins>
+			 <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.0.0</version>
+			</plugin>
+			<plugin>
 				<groupId>org.mule.runtime.plugins</groupId>
 				<artifactId>mule-extensions-maven-plugin</artifactId>
 				<version>${mule.extensions.maven.plugin.version}</version>
@@ -39,25 +38,24 @@
 				<artifactId>exchange-mule-maven-plugin</artifactId>
 				<version>${exchange.mule.maven.plugin.version}</version>
 				<executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>exchange-pre-deploy</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>deploy</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>exchange-deploy</goal>
-                        </goals>
-                    </execution>
-                </executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>exchange-pre-deploy</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>deploy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>exchange-deploy</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
-			
-    </plugins>
-</build>
+		</plugins>
+	</build>
 
 	<pluginRepositories>
 		<pluginRepository>
@@ -127,10 +125,10 @@
 
 	<distributionManagement>
   		<repository>
-					<id>anypoint-exchange-v3</id>
-					<name>Anypoint Exchange</name>
-					<url>https://maven.eu1.anypoint.mulesoft.com/api/v3/organizations/bdda7453-25b1-4ab5-be35-f32d9b8ce1cb/maven</url>
-					<layout>default</layout>
-				</repository>      
+			<id>anypoint-exchange-v3</id>
+			<name>Anypoint Exchange</name>
+			<url>https://maven.eu1.anypoint.mulesoft.com/api/v3/organizations/${globals.businessGroupId}/maven</url>
+			<layout>default</layout>
+		</repository>
     </distributionManagement>  	  	  
 </project>
