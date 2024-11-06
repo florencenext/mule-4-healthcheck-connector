@@ -19,6 +19,9 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 			<route >
 				<healthcheck:jms doc:name="Jms" doc:id="aadd76e8-6dc8-4eda-bd0f-3832befcf086" serviceName="jms-1" configRef="JMS_Config" queueDestination="test" />
 			</route>
+			<route >
+				<healthcheck:amqp doc:name="Amqp" doc:id="5227fdf6-1607-42f5-ade4-e2a09d4d3fbb" serviceName="test-amqp" configRef="AMQP_Config" exchangeDestination="test" queueDestination="test"/>
+			</route>
 		</scatter-gather>
 		<healthcheck:create-healthcheck-object doc:name="papi-2" doc:id="08355086-7b37-4d46-a2fe-1bfa1fca4ca7" config-ref="papi2-healthcheck-connector-config" services="#[payload pluck $.payload]" />
 		<ee:transform doc:name="prepare Response" doc:id="7ba06a8b-0ec9-42d5-83ba-9c20683c12f8" >
@@ -55,7 +58,8 @@ formattedhealthcheck(payload,{compact:true})
 	<flow name="papi-2-test-jms-impl" doc:id="af389794-6132-4430-b6c3-fc1685695fb3" >
 		<http:listener doc:name="/papi-2/jms-impl" doc:id="259b775d-4e82-4974-88da-65b2ab1932fc" config-ref="healthcheck-app-listener" path="/papi-2/jms-impl" />
 		<logger level="INFO" doc:name="START" doc:id="408b574b-621c-4abb-b0e8-e97b6040189d" message="START - FLOW TEST JMS IMPL" />
-		<jms:publish doc:name="test-queue" doc:id="5649e6ec-2c95-44e9-a310-465826c2e25a" config-ref="JMS_Config" destination="test-queue" persistentDelivery="false"/>
+		<jms:publish doc:name="test-queue" doc:id="5649e6ec-2c95-44e9-a310-465826c2e25a" config-ref="JMS_Config" destination="test-queue" persistentDelivery="false">
+		</jms:publish>
 		<logger level="INFO" doc:name="JMS-publish" doc:id="8ad52169-9e9c-436b-a1f0-89c5d50b7dcf" message="JMS Publish completed" />
 		<ee:transform doc:name="prepare Response" doc:id="331d8081-d828-4a4e-b0d5-1bba1606c086" >
 			<ee:message >
@@ -63,7 +67,7 @@ formattedhealthcheck(payload,{compact:true})
 output application/json
 import * from modules::HealthcheckConnectorModule
 ---
-formattedhealthcheck(payload,{compact:true})
+formattedHealthcheck(payload,{compact:true})
 //formattedhealthcheck(payload)]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

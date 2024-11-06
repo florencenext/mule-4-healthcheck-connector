@@ -75,7 +75,7 @@ http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/
 	</wsc:config>	
 	
 	<amqp:config name="AMQP_Config" doc:name="AMQP Config" doc:id="adbf7df8-7c72-4bdb-80e1-79797f8a5876" >
-		<amqp:connection host="localhost" username="guest" password="guest" />
+		<amqp:connection host="localhost" username="guest" password="guest" port="5672"/>
 	</amqp:config>
 	
 	<jms:config name="JMS_Config" encoding="UTF-8" contentType="application/json">

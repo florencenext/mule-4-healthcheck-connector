@@ -4,8 +4,11 @@ import com.florencenext.connectors.healthcheck.api.model.entities.Healthcheck;
 import com.florencenext.connectors.healthcheck.api.model.entities.ServiceStatus;
 import com.florencenext.connectors.healthcheck.api.model.entities.ServiceType;
 import com.florencenext.connectors.healthcheck.internal.providers.ExtensionErrorProviders;
+import org.mule.extensions.jms.api.config.ConsumerAckMode;
+import org.mule.extensions.jms.api.destination.QueueConsumer;
 import org.mule.runtime.api.streaming.object.CursorIterator;
 import org.mule.runtime.api.streaming.object.CursorIteratorProvider;
+import org.mule.runtime.core.api.streaming.iterator.ConsumerStreamingIterator;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.error.Throws;
 import org.mule.runtime.extension.api.annotation.param.MediaType;
@@ -15,12 +18,17 @@ import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.mule.runtime.extension.api.client.DefaultOperationParameters;
 import org.mule.runtime.extension.api.client.ExtensionsClient;
+import org.mule.runtime.extension.api.client.OperationParameterizer;
 import org.mule.runtime.extension.api.client.OperationParameters;
+import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.florencenext.connectors.healthcheck.internal.helper.ErrorFormatterHelper.createErrorStringFromException;
 
@@ -62,15 +70,19 @@ public class DatabaseOperations {
 
 		try {
 
-			OperationParameters dbParameters = DefaultOperationParameters.builder()
-					.configName(configRef)
-					.addParameter("sql", inputQuery)
-					.build();
 
-			CursorIteratorProvider input = (CursorIteratorProvider) extensionsClient.execute(dbExtension, dbOperation, dbParameters).getOutput();
+			Consumer<OperationParameterizer> dbParameters = operationParameterizer ->
+					operationParameterizer.withConfigRef(configRef)
+							.withParameter("sql", inputQuery);
+
+
+			CompletableFuture<Result<ConsumerStreamingIterator<Map<String, Object>>, Void>> futureResultConsume = extensionsClient.execute(dbExtension, dbOperation, dbParameters);
+			Result<ConsumerStreamingIterator<Map<String, Object>>, Void> resultsConsume = futureResultConsume.get(10, TimeUnit.SECONDS);
+			ConsumerStreamingIterator<Map<String, Object>> iterator = resultsConsume.getOutput();
+
 			elapsedTime = System.currentTimeMillis() - startTime;
-			
-			CursorIterator<Map<String, Object>> iterator = input.openCursor();									
+
+
 		    while (iterator.hasNext()) {
 		        Map<String, Object> row = (Map<String, Object>) iterator.next();
 		        LOGGER.debug("db iterator" + row );

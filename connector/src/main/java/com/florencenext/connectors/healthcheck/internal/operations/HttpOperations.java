@@ -5,6 +5,8 @@ import com.florencenext.connectors.healthcheck.api.model.entities.ServiceStatus;
 import com.florencenext.connectors.healthcheck.api.model.entities.ServiceType;
 import com.florencenext.connectors.healthcheck.internal.providers.ExtensionErrorProviders;
 import com.florencenext.connectors.healthcheck.internal.providers.MethodTypeProvider;
+import org.mule.extensions.jms.api.message.JmsxProperties;
+import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.api.util.MultiMap;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.Expression;
@@ -16,15 +18,22 @@ import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.mule.runtime.extension.api.annotation.values.OfValues;
 import org.mule.runtime.extension.api.client.DefaultOperationParameters;
 import org.mule.runtime.extension.api.client.ExtensionsClient;
+import org.mule.runtime.extension.api.client.OperationParameterizer;
 import org.mule.runtime.extension.api.client.OperationParameters;
+import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.florencenext.connectors.healthcheck.internal.helper.ErrorFormatterHelper.createErrorStringFromException;
 import static org.mule.runtime.api.meta.ExpressionSupport.NOT_SUPPORTED;
+import static org.mule.runtime.api.metadata.DataType.JSON_STRING;
 
 
 public class HttpOperations {
@@ -86,14 +95,20 @@ public class HttpOperations {
 		long startTime = System.currentTimeMillis(), elapsedTime = 0;
 
 		try {
-			OperationParameters parameters = DefaultOperationParameters.builder().configName(configRef)
-					.addParameter("path", httpPath)
-					.addParameter("method", httpMethod)
-					.addParameter("headers", headers)
-					.addParameter("queryParams", queryParams)
-					.addParameter("uriParams", uriParams)
-					.build();
-			extensionsClient.execute(httpExtension, httpOperation, parameters);
+
+			Consumer<OperationParameterizer> parameters = operationParameterizer ->
+					operationParameterizer.withConfigRef(configRef)
+							.withParameter("path", httpPath)
+							.withParameter("method", httpMethod)
+							.withParameter("headers", headers)
+							.withParameter("queryParams", queryParams)
+							.withParameter("uriParams", uriParams);
+
+
+			CompletableFuture<Result<Void, Void>> futureResultPublish = extensionsClient.execute(httpExtension, httpOperation, parameters);
+
+			Result<Void, Void> resultsPublish = futureResultPublish.get(10, TimeUnit.SECONDS);
+
 			elapsedTime = System.currentTimeMillis() - startTime;
 			LOGGER.info("http request executed");
 			status = ServiceStatus.HEALTHY;

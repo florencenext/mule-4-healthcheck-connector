@@ -1,5 +1,28 @@
 # mule-4-healthcheck-connector
 
+## Release Notes
+
+### v2.0.0
+November 6, 2024
+### Compatibility
+
+| Software | Version         |
+|---------|-----------------|
+| Mule Runtime   | 4.6.3 and later |
+| Mule JDK | 8 and 17        |
+| Maven   | 3.9.7 and later |
+
+
+### v1.0.0
+September 1, 2022
+### Compatibility
+
+| Software | Version        |
+|---------|----------------|
+| Mule Runtime   | 4.3.x and 4.4.x |
+| Mule JDK | 8       |
+| Maven   | 3.6.3 |
+
 ### Repository Structure
 
 * [connector](/connector) : Mule 4 Healthcheck Connector code

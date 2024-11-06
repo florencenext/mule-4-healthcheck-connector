@@ -5,12 +5,15 @@ import com.florencenext.connectors.healthcheck.internal.operations.AmqpOperation
 import com.florencenext.connectors.healthcheck.internal.operations.DatabaseOperations;
 import com.florencenext.connectors.healthcheck.internal.operations.HttpOperations;
 import com.florencenext.connectors.healthcheck.internal.operations.JmsOperations;
+
 import org.mule.runtime.extension.api.annotation.Export;
 import org.mule.runtime.extension.api.annotation.Extension;
 import org.mule.runtime.extension.api.annotation.Configurations;
 import org.mule.runtime.extension.api.annotation.Operations;
 import org.mule.runtime.extension.api.annotation.dsl.xml.Xml;
 import org.mule.runtime.extension.api.annotation.error.ErrorTypes;
+import org.mule.sdk.api.annotation.JavaVersionSupport;
+import org.mule.sdk.api.meta.JavaVersion;
 
 import com.florencenext.connectors.healthcheck.api.model.errors.ExtensionErrorTypes;
 
@@ -32,6 +35,7 @@ import com.florencenext.connectors.healthcheck.api.model.errors.ExtensionErrorTy
             JmsOperations.class,
             HttpOperations.class
         })
+@JavaVersionSupport({JavaVersion.JAVA_8, JavaVersion.JAVA_17})
 public class HealthCheckExtension {
 
 }

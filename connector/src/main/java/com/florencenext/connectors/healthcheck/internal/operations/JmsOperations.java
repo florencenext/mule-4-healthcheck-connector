@@ -6,9 +6,9 @@ import com.florencenext.connectors.healthcheck.api.model.entities.ServiceType;
 import com.florencenext.connectors.healthcheck.internal.providers.ExtensionErrorProviders;
 import org.mule.extensions.jms.api.config.ConsumerAckMode;
 import org.mule.extensions.jms.api.destination.QueueConsumer;
-import org.mule.extensions.jms.api.message.JmsMessageBuilder;
 import org.mule.extensions.jms.api.message.JmsxProperties;
 import org.mule.runtime.api.metadata.TypedValue;
+import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.error.Throws;
 import org.mule.runtime.extension.api.annotation.param.MediaType;
@@ -16,14 +16,17 @@ import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
-import org.mule.runtime.extension.api.client.DefaultOperationParameters;
 import org.mule.runtime.extension.api.client.ExtensionsClient;
-import org.mule.runtime.extension.api.client.OperationParameters;
+import org.mule.runtime.extension.api.client.OperationParameterizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.inject.Inject;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import org.mule.runtime.extension.api.runtime.operation.Result;
+
 
 import static com.florencenext.connectors.healthcheck.internal.helper.ErrorFormatterHelper.createErrorStringFromException;
 import static org.mule.runtime.api.metadata.DataType.JSON_STRING;
@@ -37,9 +40,13 @@ public class JmsOperations {
 	private static final String jmsPublishOperation = "publish";
 	private static ServiceType type = ServiceType.JMS;
 	private ServiceStatus status = ServiceStatus.UNHEALTHY;
-	
+
 	@Inject
 	ExtensionsClient extensionsClient;
+
+	@Inject
+	private MuleContext muleContext;
+
 
 	@Parameter
 	@DisplayName("Service Name")
@@ -73,30 +80,39 @@ public class JmsOperations {
 
 		long to = ((Number) 1).longValue();
 		long startTime = System.currentTimeMillis(), elapsedTime = 0;
-		
+
+
 		try {
 
-			//publish
-			OperationParameters parameters = DefaultOperationParameters.builder().configName(configRef)
-					.addParameter("destination", destQueue)
-					.addParameter("messageBuilder", JmsMessageBuilder.class, DefaultOperationParameters.builder()
-							.addParameter("body", new TypedValue<>("this is test", JSON_STRING))
-							.addParameter("jmsxProperties", new JmsxProperties())
-							.addParameter("properties", new HashMap<String, Object>()))
-					.build();
+			Consumer<OperationParameterizer> parameters = operationParameterizer ->
+					operationParameterizer.withConfigRef(configRef)
+							.withParameter("destination", destQueue)
+							.withParameter("body", new TypedValue<>("this is test", JSON_STRING))
+							.withParameter("jmsxProperties", new JmsxProperties())
+							.withParameter("properties", new HashMap<String, Object>())
+							.withParameter("sendEncoding", true)
+							.withParameter("sendContentType", true);
+
+
+
 			LOGGER.debug("JMS HEALTHCHECK parameters:"+parameters);
-			extensionsClient.execute(jmsExtension, jmsPublishOperation, parameters);									
+
+			CompletableFuture<Result<Void, Void>> futureResultPublish = extensionsClient.execute(jmsExtension, jmsPublishOperation, parameters);
+
+			Result<Void, Void> resultsPublish = futureResultPublish.get(10, TimeUnit.SECONDS);
+
 			LOGGER.info("jms publish executed!");
 
-			//consume
-			OperationParameters conParameters = DefaultOperationParameters.builder().configName(configRef)
-					.addParameter("destination", destQueue)
-					.addParameter("consumerType", new QueueConsumer())
-					.addParameter("ackMode", ConsumerAckMode.IMMEDIATE)
-					//.addParameter("maximumWait", to)
-					.build();
-		
-			extensionsClient.execute(jmsExtension, jmsConsumeOperation, conParameters);
+			Consumer<OperationParameterizer> conParameters = operationParameterizer ->
+					operationParameterizer.withConfigRef(configRef)
+							.withParameter("destination", destQueue)
+							.withParameter("consumerType", new QueueConsumer())
+							.withParameter("ackMode", ConsumerAckMode.IMMEDIATE);
+
+			CompletableFuture<Result<Void, Void>> futureResultConsume = extensionsClient.execute(jmsExtension, jmsConsumeOperation, conParameters);
+
+			Result<Void, Void> resultsConsume = futureResultConsume.get(10, TimeUnit.SECONDS);
+
 			elapsedTime = System.currentTimeMillis() - startTime;
 			
 			LOGGER.info("jms consume executed!");
@@ -113,5 +129,5 @@ public class JmsOperations {
 		return new Healthcheck(serviceName, type, status,(Integer) Math.toIntExact(elapsedTime),errorString);
 
 	}
-	
+
 }
