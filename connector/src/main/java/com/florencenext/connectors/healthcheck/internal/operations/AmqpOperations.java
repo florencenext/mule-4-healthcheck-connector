@@ -8,6 +8,8 @@ import com.florencenext.connectors.healthcheck.internal.providers.ExtensionError
 import com.mule.extensions.amqp.api.config.ConsumerAckMode;
 import com.mule.extensions.amqp.api.message.AmqpMessageBuilder;
 import com.mule.extensions.amqp.api.message.AmqpProperties;
+import org.mule.extensions.jms.api.destination.QueueConsumer;
+import org.mule.extensions.jms.api.message.JmsxProperties;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.error.Throws;
@@ -20,11 +22,18 @@ import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.mule.runtime.extension.api.client.DefaultOperationParameters;
 import org.mule.runtime.extension.api.client.ExtensionsClient;
+import org.mule.runtime.extension.api.client.OperationParameterizer;
 import org.mule.runtime.extension.api.client.OperationParameters;
+import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.florencenext.connectors.healthcheck.internal.helper.ErrorFormatterHelper.createErrorStringFromException;
 import static org.mule.runtime.api.metadata.DataType.JSON_STRING;
@@ -84,22 +93,40 @@ public class AmqpOperations {
 	
 	try {
 		//publish
-		OperationParameters parameters = DefaultOperationParameters.builder().configName(configRef)
-				.addParameter("exchangeName", destExchange)
-				.addParameter("messageBuilder", AmqpMessageBuilder.class, DefaultOperationParameters.builder()
-						.addParameter("body", new TypedValue<>("test body", JSON_STRING))
-						.addParameter("properties", new AmqpProperties()))
-				.build();					
-		extensionsClient.execute(amqpExtension, amqpPublishOperation, parameters);									
+//		OperationParameters parameters = DefaultOperationParameters.builder().configName(configRef)
+//				.addParameter("exchangeName", destExchange)
+//				//.addParameter("messageBuilder", AmqpMessageBuilder.class, DefaultOperationParameters.builder()
+//						.addParameter("body", new TypedValue<>("test body", JSON_STRING))
+//						.addParameter("properties", new AmqpProperties())
+//				.build();
+
+		Consumer<OperationParameterizer> parameters = operationParameterizer ->
+				operationParameterizer.withConfigRef(configRef)
+						.withParameter("exchangeName", destExchange)
+						.withParameter("body", new TypedValue<>("test body", JSON_STRING))
+						.withParameter("properties", new AmqpProperties());
+
+		CompletableFuture<Result<Void, Void>> futureResultPublish =extensionsClient.execute(amqpExtension, amqpPublishOperation, parameters);
+
+		Result<Void, Void> resultsPublish = futureResultPublish.get(10, TimeUnit.SECONDS);
+
 		LOGGER.debug("amqp publish executed!");
 
-		//consume
-		OperationParameters conParameters = DefaultOperationParameters.builder().configName(configRef)
-				.addParameter("queueName", destQueue)
-				.addParameter("ackMode", ConsumerAckMode.IMMEDIATE)
-				.build();
+		Consumer<OperationParameterizer> conParameters = operationParameterizer ->
+				operationParameterizer.withConfigRef(configRef)
+						.withParameter("queueName", destQueue)
+						.withParameter("ackMode", ConsumerAckMode.IMMEDIATE);
 
-		extensionsClient.execute(amqpExtension, amqpConsumeOperation, conParameters);			
+		//consume
+//		OperationParameters conParameters = DefaultOperationParameters.builder().configName(configRef)
+//				.addParameter("queueName", destQueue)
+//				.addParameter("ackMode", ConsumerAckMode.IMMEDIATE)
+//				.build();
+
+		CompletableFuture<Result<Void, Void>> futureResultConsume = extensionsClient.execute(amqpExtension, amqpConsumeOperation, conParameters);
+
+		Result<Void, Void> resultsConsume = futureResultConsume.get(10, TimeUnit.SECONDS);
+
 		elapsedTime = System.currentTimeMillis() - startTime;
 		
 		LOGGER.debug("amqp consume executed!");

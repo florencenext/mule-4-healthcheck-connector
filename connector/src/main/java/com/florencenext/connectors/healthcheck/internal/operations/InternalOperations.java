@@ -9,6 +9,7 @@ import com.florencenext.connectors.healthcheck.internal.configurations.Healthche
 import com.florencenext.connectors.healthcheck.internal.configurations.InternalServiceConfig;
 import com.florencenext.connectors.healthcheck.internal.providers.ExtensionErrorProviders;
 import org.mule.extension.http.api.HttpResponseAttributes;
+import org.mule.extensions.jms.api.message.JmsxProperties;
 import org.mule.runtime.api.el.BindingContext;
 import org.mule.runtime.api.meta.ExpressionSupport;
 import org.mule.runtime.api.metadata.DataType;
@@ -27,6 +28,7 @@ import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.mule.runtime.extension.api.annotation.param.display.Text;
 import org.mule.runtime.extension.api.client.DefaultOperationParameters;
 import org.mule.runtime.extension.api.client.ExtensionsClient;
+import org.mule.runtime.extension.api.client.OperationParameterizer;
 import org.mule.runtime.extension.api.client.OperationParameters;
 import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.mule.runtime.http.api.HttpService;
@@ -37,10 +39,15 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.florencenext.connectors.healthcheck.internal.helper.ErrorFormatterHelper.createErrorStringFromException;
 import static com.florencenext.connectors.healthcheck.internal.helper.HealthcheckNormalizer.normalizeHealthCheck;
+import static org.mule.runtime.api.metadata.DataType.JSON_STRING;
 
 
 /**
@@ -104,13 +111,18 @@ public class InternalOperations {
 
             try {
                 LOGGER.debug("Calling internal serivce with config named:"+httpConfigName);
-                OperationParameters parameters = DefaultOperationParameters.builder().configName(httpConfigName)
-                        .addParameter("path", healthcheckPath)
-                        .addParameter("method", HEALTHCHECK_METHOD)
-                        .build();
-                Result<HttpEntity, HttpResponseAttributes> result = extensionsClient.execute(httpExtension, httpOperation, parameters);
 
+
+                Consumer<OperationParameterizer> parameters = operationParameterizer ->
+                        operationParameterizer.withConfigRef(httpConfigName)
+                                .withParameter("path", healthcheckPath)
+                                .withParameter("method", HEALTHCHECK_METHOD);
+
+                CompletableFuture<Result<HttpEntity, HttpResponseAttributes>> resultHttp = extensionsClient.execute(httpExtension, httpOperation, parameters);
+
+                Result<HttpEntity, HttpResponseAttributes> result = resultHttp.get(10, TimeUnit.SECONDS);
                 java.util.Optional<HttpResponseAttributes> attributes = result.getAttributes();
+
 
                 LOGGER.info("request executed!");
 

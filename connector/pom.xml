@@ -4,16 +4,59 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.florencenext.connectors.healthcheck</groupId>
 	<artifactId>health-check-connector</artifactId>
-	<version>1.0.0</version>
+	<version>2.0.0</version>
 	<packaging>mule-extension</packaging>
 	<name>Health Check Connector</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.mule.tools.maven</groupId>
+				<artifactId>exchange-mule-maven-plugin</artifactId>
+				<version>0.0.23</version>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>exchange-pre-deploy</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>deploy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>exchange-deploy</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 	<parent>
 		<groupId>org.mule.extensions</groupId>
 		<artifactId>mule-modules-parent</artifactId>
-		<version>1.1.3</version>
+		<version>1.6.8</version>
 	</parent>
-	
+
+	<properties>
+		<muleJavaEeBomVersion>4.6.0</muleJavaEeBomVersion>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.mule</groupId>
+				<artifactId>mule-javaee-runtime-bom</artifactId>
+				<version>${muleJavaEeBomVersion}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+
 	<pluginRepositories>
 		<pluginRepository>
 			<id>mulesoft-releases</id>
@@ -25,69 +68,90 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-jms-connector</artifactId>
-			<version>1.7.5</version>
+			<version>1.9.7</version>
 			<classifier>mule-plugin</classifier>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-            <groupId>org.mule.sdk</groupId>
-            <artifactId>mule-sdk-api</artifactId>
-			<version>0.3.0</version>
-        </dependency>
+			<groupId>org.mule.sdk</groupId>
+			<artifactId>mule-sdk-api</artifactId>
+			<version>0.10.1</version>
+		</dependency>
 		<dependency>
 		  <groupId>org.mule.connectors</groupId>
 		  <artifactId>mule-http-connector</artifactId>
-		  <version>1.6.0</version>
+		  <version>1.10.3</version>
 		  <classifier>mule-plugin</classifier>
 			<scope>compile</scope>
 		</dependency>
         <dependency>
             <groupId>com.mulesoft.connectors</groupId>
             <artifactId>mule-amqp-connector</artifactId>
-            <version>1.6.0</version>
+            <version>1.8.1</version>
             <classifier>mule-plugin</classifier>
 			<scope>compile</scope>
         </dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.11.0</version>
+			<version>2.17.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.11.1</version>
+			<version>2.13.4.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.services</groupId>
 			<artifactId>mule-service-http</artifactId>
-			<version>1.1.1</version>
+			<version>1.8.3</version>
 			<classifier>mule-service</classifier>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.services</groupId>
 			<artifactId>mule-service-scheduler</artifactId>
-			<version>1.1.2</version>
+			<version>1.6.3</version>
 			<classifier>mule-service</classifier>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
+	<repositories>
+		<repository>
+			<id>mulesoft-releases</id>
+			<name>MuleSoft Releases Repository</name>
+			<url>https://repository.mulesoft.org/releases/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>mulesoft-snapshots</id>
+			<name>MuleSoft Snapshots Repository</name>
+			<url>https://repository.mulesoft.org/snapshots/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>Exchange3</id>
+			<name>Exchange3 Repository</name>
+			<url>https://maven.eu1.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
 
 	<distributionManagement>
 		<!-- Target Anypoint Organization Repository -->
 		  <repository>
-			<id>Exchange2</id>
-			  <name>Exchange2 Repository</name>
-			  <url>https://maven.eu1.anypoint.mulesoft.com/api/v1/organizations/${project.groupId}/maven</url>
+			<id>Exchange3</id>
+			  <name>Exchange3 Repository</name>
+			  <url>https://maven.eu1.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
 			  <layout>default</layout>
 		  </repository>
 	  </distributionManagement>
-	  
+
+
 </project>

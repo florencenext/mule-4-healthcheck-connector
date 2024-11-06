@@ -25,3 +25,6 @@ hs_err_pid*
 target/
 .mule
 .classpath
+
+#IDE
+*.idea
